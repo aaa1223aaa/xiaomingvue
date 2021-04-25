@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+    <link rel="stylesheet" href="css.css">
+
+    <title>小铭音乐播放器</title>
+
+
+</head>
+
+<body>
+    <div id="yue">
+        <img :src="bgImage" alt="" class="zbg">
+        <div class="mask"></div>
+
+        <!-- 歌词展示模块 -->
+        <div class="lyric">
+            <ul v-for="(item,index) in lyrics">
+                <li>{{item}}</li>
+            </ul>
+        </div>
+
+        <!-- 歌曲搜索模块 -->
+        <div class="songSearch">
+            <input type="text" class="form-control" v-model="musicName" @change="shu" @input="suggestMusic"
+                @blur="deleteSuggestion">
+            <a @click="shu" class="btn btn-info" role="button">搜索</a>
+            <ul class="keywordShow">
+                <li v-for="(item,index) in suggestMusics" @touchstart="shuRu(index)">
+                    <a href="javascript:;">{{suggestMusics[index].name}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 歌曲列表模块 -->
+        <div class="songList">
+            <ul v-for="(item,index) in ges">
+                <li @click="highlight(index)">
+                    <span class="number">{{index+1}} </span>
+                    <a href="javascript:;" class="lis-musicName" @click="playMusic(item.id,index)">{{item.name}}</a>
+                    <a href="javascript:;" class="lis-musicSinger"
+                        @click="searchSinger(item.artists[0].name)">{{item.artists[0].name}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 底部播放模块 -->
+        <div class="footer">
+            <audio ref="audio" :src="musicUrl" id="ad" @ended="songSwitch" controls autoplay></audio>
+        </div>
+
+    </div>
+    <script>
+
+        var app = new Vue({
+            el: "#yue",
+            data: {
+                ges: [],
+                musicName: "后来的我们",
+                musicUrl: "",
+                bgImage: "bei.jpg",
+                suggestMusics: [],
+                lyrics: [],
+                lyricsTime: [],
+                musicIndex: 0
+            },
+            methods: {
+
+                // 歌曲关键字提醒
+                suggestMusic: function () {
+                    var that = this;
+                    axios.get("https://autumnfish.cn/search/suggest?keywords=" + this.musicName)
+                        .then(function (response) {
+                            that.suggestMusics = response.data.result.songs;
+                        }, function (error) {
+                            console.log(error);
+                        })
+                },
+
+                // 删除关键字提醒
+                deleteSuggestion: function () {
+                    this.suggestMusics = [];
+                },
+
+                // 点击关键字 获取歌单 
+                shuRu: function (index) {
+                    this.musicName = this.suggestMusics[index].name;
+                },
+
+
+                // 点击歌手 获取歌单
+                searchSinger: function (singerName) {
+                    this.musicName = singerName;
+                    this.shu();
+                },
+
+                // 获取输入的歌曲 展示歌单
+                shu: function () {
+                    var that = this;
+
+                    axios.get("https://autumnfish.cn/search?keywords=" + this.musicName).then(function (ge) {
+                        that.ges = ge.data.result.songs;
+
+                    }, function (error) {
+                        console.log(error);
+                    })
+                    this.suggestMusics = [];
+                    var lis = document.querySelectorAll('.songList li')
+                    for (let i = 0; i < lis.length; i++) {
+                        lis[i].style.opacity = ".6";
+                    }
+
+                },
+
+                
+
+                // 高亮
+                highlight(index) {
+                    var lis = document.querySelectorAll('.songList li')
+                    for (let i = 0; i < lis.length; i++) {
+                        lis[i].style.opacity = ".6";
+                    }
+                    lis[index].style.opacity = "1";
+                },
+
+                // 播放音乐
+                playMusic: function (playMusicId, index) {
+
+                    var that = this;
+                    that.musicIndex = index;
+
+                    // 获取歌曲地址
+                    axios.get("https://autumnfish.cn/song/url?id=" + playMusicId).then(function (response) {
+                        that.musicUrl = response.data.data[0].url;
+                    })
+
+                    // 获取歌曲图片和歌手名字
+                    axios.get("https://autumnfish.cn/song/detail?ids=" + playMusicId).then(function (response) {
+                        that.bgImage = response.data.songs[0].al.picUrl;
+                        that.singer = response.data.songs[0].ar[0].name;
+                    })
+
+                    // 获取歌曲图片
+                    axios.get("https://autumnfish.cn/song/detail?ids=1")
+
+
+                    // 获取歌词
+                    axios.get("https://autumnfish.cn/lyric?id=" + playMusicId).then(function (response) {
+                        // 处理歌词
+                        that.handlingLyrics(response.data.lrc.lyric);
+                    })
+
+                },
+
+                // 处理歌词
+                handlingLyrics: function (lyric) {
+                    var lyricsNO = lyric.split("\n");
+                    var that = this;
+
+                    lyricsNO.forEach(function (item, index) {
+                        var separator = lyricsNO[index].indexOf(']');
+                        that.lyricsTime[index] = lyricsNO[index].slice(1, separator);
+                        that.lyrics[index] = lyricsNO[index].slice(separator + 1, lyricsNO[index].length);
+                    });
+                },
+
+                // 自动播放下一首
+                songSwitch: function () {
+
+                    var songList = document.querySelector(".songList");
+                    var as = songList.querySelectorAll(".lis-musicName");
+                    if (as[this.musicIndex + 1]) {
+                        as[this.musicIndex + 1].click();
+                    } else {
+                        console.log("不存在");
+                    }
+
+
+
+
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>
