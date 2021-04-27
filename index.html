@@ -194,7 +194,7 @@
 
                         lyricsNO.forEach(function (item, index) {
                             let separator = lyricsNO[index].indexOf(']');
-                            console.log(lyricsNO[index]);
+                          
 
                             let time = lyricsNO[index].slice(1, separator);
                             let ci = lyricsNO[index].slice(separator + 1, lyricsNO[index].length)
@@ -217,7 +217,7 @@
 
                         let sc = document.querySelector(".lyric>ul");
                         let timee = Math.round(parseFloat(ad.currentTime.toFixed(1)))
-                        console.log(timee);
+                      
                         if (that.lyricsTime.indexOf(timee) != -1) {
                             that.ind = that.lyricsTime.indexOf(timee)
                             sc.scroll({
