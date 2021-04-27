@@ -26,7 +26,7 @@
 
         <!-- 歌词展示模块 -->
         <div class="lyric">
-            <ul v-for="(item,index) in lyrics">
+            <ul v-for="item in lyrics">
                 <li>{{item}}</li>
             </ul>
         </div>
@@ -36,8 +36,9 @@
             <input type="text" class="form-control" v-model="musicName" @change="shu" @input="suggestMusic"
                 @blur="deleteSuggestion">
             <a @click="shu" class="btn btn-info" role="button">搜索</a>
+            <a @click="showLyrics" class="btn btn-info" role="button">歌词</a>
             <ul class="keywordShow">
-                <li v-for="(item,index) in suggestMusics" @touchstart="shuRu(index)">
+                <li v-for="(item,index) in suggestMusics" @mouseDown="shuRu(index)" @touchstart="shuRu(index)">
                     <a href="javascript:;">{{suggestMusics[index].name}}</a>
                 </li>
             </ul>
@@ -62,12 +63,17 @@
 
     </div>
     <script>
-
+        window.onload = function () {
+            window.scroll({
+                top: 1000,
+                behavior: 'smooth'
+            });
+        }
         var app = new Vue({
             el: "#yue",
             data: {
                 ges: [],
-                musicName: "后来的我们",
+                musicName: "五月天",
                 musicUrl: "",
                 bgImage: "bei.jpg",
                 suggestMusics: [],
@@ -96,8 +102,16 @@
                 // 点击关键字 获取歌单 
                 shuRu: function (index) {
                     this.musicName = this.suggestMusics[index].name;
+
                 },
 
+                // 展示歌词
+                showLyrics() {
+                    window.scroll({
+                        top: -700,
+                        behavior: 'smooth'
+                    });
+                },
 
                 // 点击歌手 获取歌单
                 searchSinger: function (singerName) {
@@ -115,15 +129,12 @@
                     }, function (error) {
                         console.log(error);
                     })
-                    this.suggestMusics = [];
                     var lis = document.querySelectorAll('.songList li')
                     for (let i = 0; i < lis.length; i++) {
                         lis[i].style.opacity = ".6";
                     }
 
                 },
-
-                
 
                 // 高亮
                 highlight(index) {
@@ -136,9 +147,13 @@
 
                 // 播放音乐
                 playMusic: function (playMusicId, index) {
+                    if(1){
 
+                    }
                     var that = this;
                     that.musicIndex = index;
+                    that.lyrics = [];
+                    that.lyricsTime = [];
 
                     // 获取歌曲地址
                     axios.get("https://autumnfish.cn/song/url?id=" + playMusicId).then(function (response) {
@@ -151,29 +166,24 @@
                         that.singer = response.data.songs[0].ar[0].name;
                     })
 
-                    // 获取歌曲图片
-                    axios.get("https://autumnfish.cn/song/detail?ids=1")
 
 
                     // 获取歌词
                     axios.get("https://autumnfish.cn/lyric?id=" + playMusicId).then(function (response) {
                         // 处理歌词
-                        that.handlingLyrics(response.data.lrc.lyric);
+                        var lyricsNO = response.data.lrc.lyric.split("\n");
+
+                        lyricsNO.forEach(function (item, index) {
+                            let separator = lyricsNO[index].indexOf(']');
+                            // 直接给data的数据改变值没办法直接渲染，需要用push（）等数组方法才行
+                            that.lyricsTime.push(lyricsNO[index].slice(1, separator));
+                            that.lyrics.push(lyricsNO[index].slice(separator + 1, lyricsNO[index].length));
+                        });
+
                     })
 
                 },
 
-                // 处理歌词
-                handlingLyrics: function (lyric) {
-                    var lyricsNO = lyric.split("\n");
-                    var that = this;
-
-                    lyricsNO.forEach(function (item, index) {
-                        var separator = lyricsNO[index].indexOf(']');
-                        that.lyricsTime[index] = lyricsNO[index].slice(1, separator);
-                        that.lyrics[index] = lyricsNO[index].slice(separator + 1, lyricsNO[index].length);
-                    });
-                },
 
                 // 自动播放下一首
                 songSwitch: function () {
