@@ -20,14 +20,15 @@
 </head>
 
 <body>
+    <div class="XiaoMing">小铭音乐</div>
     <div id="yue">
         <img :src="bgImage" alt="" class="zbg">
         <div class="mask"></div>
 
         <!-- 歌词展示模块 -->
         <div class="lyric">
-            <ul v-for="item in lyrics">
-                <li>{{item}}</li>
+            <ul>
+                <li v-for="(item,index) in lyrics" :class="liss(index)">{{item}}</li>
             </ul>
         </div>
 
@@ -35,8 +36,9 @@
         <div class="songSearch">
             <input type="text" class="form-control" v-model="musicName" @change="shu" @input="suggestMusic"
                 @blur="deleteSuggestion">
-            <a @click="shu" class="btn btn-info" role="button">搜索</a>
             <a @click="showLyrics" class="btn btn-info" role="button">歌词</a>
+            <a @click="shu" class="btn btn-info" role="button">搜索</a>
+
             <ul class="keywordShow">
                 <li v-for="(item,index) in suggestMusics" @mouseDown="shuRu(index)" @touchstart="shuRu(index)">
                     <a href="javascript:;">{{suggestMusics[index].name}}</a>
@@ -63,12 +65,20 @@
 
     </div>
     <script>
-        window.onload = function () {
-            window.scroll({
-                top: 1000,
-                behavior: 'smooth'
-            });
+        window.onscroll = function () {
+            let ly = document.querySelector('.lyric');
+            let fS = document.querySelector('.songSearch');
+
+
+            if (parseInt(window.pageYOffset) > parseInt(ly.offsetHeight)-30) {
+                fS.classList.add('fixedSearch');
+
+            }else{
+                fS.classList.remove('fixedSearch');
+            }
         }
+
+
         var app = new Vue({
             el: "#yue",
             data: {
@@ -79,7 +89,11 @@
                 suggestMusics: [],
                 lyrics: [],
                 lyricsTime: [],
-                musicIndex: 0
+                musicIndex: 0,
+                geTime: 0,
+                lyricsProgress: 0,
+                ind: 0
+
             },
             methods: {
 
@@ -92,6 +106,9 @@
                         }, function (error) {
                             console.log(error);
                         })
+                    if (!this.musicName) {
+                        this.suggestMusics = [];
+                    }
                 },
 
                 // 删除关键字提醒
@@ -102,7 +119,7 @@
                 // 点击关键字 获取歌单 
                 shuRu: function (index) {
                     this.musicName = this.suggestMusics[index].name;
-
+               
                 },
 
                 // 展示歌词
@@ -133,10 +150,14 @@
                     for (let i = 0; i < lis.length; i++) {
                         lis[i].style.opacity = ".6";
                     }
+                    window.scroll({
+                        top: 230,
+                        behavior: 'smooth'
+                    });
 
                 },
 
-                // 高亮
+                // 高亮正在播放的歌曲
                 highlight(index) {
                     var lis = document.querySelectorAll('.songList li')
                     for (let i = 0; i < lis.length; i++) {
@@ -147,9 +168,7 @@
 
                 // 播放音乐
                 playMusic: function (playMusicId, index) {
-                    if(1){
 
-                    }
                     var that = this;
                     that.musicIndex = index;
                     that.lyrics = [];
@@ -175,18 +194,54 @@
 
                         lyricsNO.forEach(function (item, index) {
                             let separator = lyricsNO[index].indexOf(']');
+                            console.log(lyricsNO[index]);
+
+                            let time = lyricsNO[index].slice(1, separator);
+                            let ci = lyricsNO[index].slice(separator + 1, lyricsNO[index].length)
+
+                            // 转化成秒数
+                            let gTime = parseFloat(time.slice(0, 2)) * 60 + Math.round(parseFloat(time.slice(3, 7)))
                             // 直接给data的数据改变值没办法直接渲染，需要用push（）等数组方法才行
-                            that.lyricsTime.push(lyricsNO[index].slice(1, separator));
-                            that.lyrics.push(lyricsNO[index].slice(separator + 1, lyricsNO[index].length));
+                            if (ci) {
+                                that.lyricsTime.push(gTime);
+                                that.lyrics.push(ci);
+                            }
+
                         });
 
                     })
 
+
+                    var ad = document.querySelector('#ad');
+                    ad.ontimeupdate = function () {
+
+                        let sc = document.querySelector(".lyric>ul");
+                        let timee = Math.round(parseFloat(ad.currentTime.toFixed(1)))
+                        console.log(timee);
+                        if (that.lyricsTime.indexOf(timee) != -1) {
+                            that.ind = that.lyricsTime.indexOf(timee)
+                            sc.scroll({
+                                top: that.ind * 40,
+                                behavior: 'smooth'
+                            });
+
+                        }
+                    }
+
                 },
 
-
+                //高亮并放大正在播放的歌词
+                liss(index) {
+                    if (index != this.ind) {
+                        return "an"
+                    } else {
+                        return "lian"
+                    }
+                },
+                
                 // 自动播放下一首
                 songSwitch: function () {
+
 
                     var songList = document.querySelector(".songList");
                     var as = songList.querySelectorAll(".lis-musicName");

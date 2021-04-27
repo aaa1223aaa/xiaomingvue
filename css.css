@@ -12,6 +12,17 @@ a {
   text-decoration: none !important;
   color: black;
 }
+.XiaoMing {
+  position: fixed;
+  top: 15px;
+  right: 0;
+  height: 4vh;
+  z-index: 10;
+  color: #ffffff;
+  font-family: "kaiti";
+  font-size: 20px;
+  opacity: 0.7;
+}
 /* 背景图片 */
 .zbg {
   position: fixed;
@@ -38,28 +49,38 @@ a {
   pointer-events: none;
   background-color: rgba(0, 0, 0, 0.35);
 }
+.fixedSearch {
+  position: fixed !important;
+  top: 50px;
+  left: 50%;
+  transform: translate(-50%);
+}
 /* 歌曲搜索模块 */
 .songSearch {
   position: relative;
   width: 90%;
   height: 50px;
-  margin: 10px auto;
+  margin: auto;
+  z-index: 10;
 }
 .songSearch > input {
   float: left;
-  width: 67%;
+  width: 65%;
   color: white;
-  background-color: rgba(255, 255, 255, 0.144);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 .songSearch > a {
   float: right;
+  margin-right: 1%;
+  width: 15%;
 }
 .songSearch > .keywordShow {
   margin-top: 32px;
-  width: 80%;
+  width: 67%;
   position: absolute;
   float: left;
   border-radius: 0 0 10px 10px;
+  overflow: hidden;
 }
 .songSearch > .keywordShow > li {
   width: 100%;
@@ -68,10 +89,8 @@ a {
   line-height: 34px;
   outline: 0;
   overflow: hidden;
-  margin-bottom: -1px;
   text-overflow: ellipsis;
   background-color: rgba(46, 45, 45, 0.8);
-  border-radius: 6px;
 }
 .songSearch > .keywordShow > li > a {
   margin-left: 12px;
@@ -83,14 +102,28 @@ a {
 .lyric {
   margin-top: 20px;
   width: 100vw;
-  height: 650px;
+  height: 35vh;
+  font-size: 16px;
+}
+.lyric ul {
+  height: 100%;
   overflow: auto;
   text-align: center;
-  color: rgba(255, 255, 255, 0.514);
-  font-size: 16px;
+  padding: 30% 0 0 0;
 }
 .lyric ul li {
   height: 40px;
+  line-height: 40px;
+  color: aliceblue;
+}
+.lyric ul .an {
+  opacity: 0.5;
+}
+.lyric ul .lian {
+  height: 60px;
+  line-height: 60px;
+  font-size: 20px;
+  opacity: 1 !important;
 }
 /* 底部播放器 */
 .footer {
@@ -106,7 +139,7 @@ a {
   height: 90vh;
   margin: 0 auto;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 15px;
 }
 .songList > ul > li {
   height: 40px;
